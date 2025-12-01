@@ -1,0 +1,5 @@
+[
+  { "id": "walk", "name": "Đi bộ", "unit": "phút", "caloriesPerUnit": 4 },
+  { "id": "run", "name": "Chạy bộ", "unit": "phút", "caloriesPerUnit": 12 },
+  { "id": "cycle", "name": "Đạp xe", "unit": "phút", "caloriesPerUnit": 8 }
+]

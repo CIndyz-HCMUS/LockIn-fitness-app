@@ -1,0 +1,6 @@
+[
+  { "id": "rice", "name": "Cơm trắng", "unit": "100g", "calories": 130 },
+  { "id": "chicken_breast", "name": "Ức gà luộc", "unit": "100g", "calories": 165 },
+  { "id": "egg", "name": "Trứng gà", "unit": "1 quả", "calories": 70 },
+  { "id": "banana", "name": "Chuối", "unit": "1 quả", "calories": 90 }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1763860842489,
+    "userId": "71eeb222-c766-4830-a71f-8df73dbc4c8a",
+    "date": "2025-11-23",
+    "activityId": "walk",
+    "name": "Đi bộ",
+    "duration": 30,
+    "calories": 120
+  },
+  {
+    "id": 1763860881495,
+    "userId": "71eeb222-c766-4830-a71f-8df73dbc4c8a",
+    "date": "2025-11-23",
+    "activityId": "cycle",
+    "name": "Đạp xe",
+    "duration": 30,
+    "calories": 240
+  },
+  {
+    "id": 1763860888031,
+    "userId": "71eeb222-c766-4830-a71f-8df73dbc4c8a",
+    "date": "2025-11-23",
+    "activityId": "cycle",
+    "name": "Đạp xe",
+    "duration": 20,
+    "calories": 160
+  },
+  {
+    "id": 1763860901596,
+    "userId": "71eeb222-c766-4830-a71f-8df73dbc4c8a",
+    "date": "2025-11-23",
+    "activityId": "run",
+    "name": "Chạy bộ",
+    "duration": 30,
+    "calories": 360
+  }
+]
