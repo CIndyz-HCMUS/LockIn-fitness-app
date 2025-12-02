@@ -58,9 +58,28 @@ app.on("window-all-closed", () => {
 });
 
 // ==================== AUTH ====================
-ipcMain.handle("auth:register", (_, username, password) => {
-  return userRepo.registerUser(username, password);
+// Hỗ trợ cả kiểu cũ (username, password) và kiểu mới có bodyInfo
+ipcMain.handle("auth:register", (_, ...args) => {
+  let username;
+  let password;
+  let bodyInfo = null;
+
+  if (args[0] && typeof args[0] === "object") {
+    // Trường hợp gửi 1 object { username, password, body }
+    const payload = args[0];
+    username = payload.username;
+    password = payload.password;
+    bodyInfo = payload.body || null;
+  } else {
+    // Trường hợp cũ: (username, password, body?)
+    username = args[0];
+    password = args[1];
+    bodyInfo = args[2] || null;
+  }
+
+  return userRepo.registerUser(username, password, bodyInfo);
 });
+
 
 ipcMain.handle("auth:login", (_, username, password) => {
   return userRepo.loginUser(username, password);

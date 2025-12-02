@@ -35,9 +35,13 @@ function ensureDefaultAdmin() {
     users.push({
       id: nextId,
       username: "admin",
-      password: "admin123", // demo, sau có thể đổi
+      password: "admin123", // demo
       role: "admin",
       isLocked: false,
+      gender: null,
+      heightCm: null,
+      weightKg: null,
+      birthYear: null,
     });
     writeJson(users);
     console.log(
@@ -48,8 +52,9 @@ function ensureDefaultAdmin() {
 
 /**
  * Đăng ký user mới
+ * bodyInfo: { gender?, heightCm?, weightKg?, birthYear? }
  */
-function registerUser(username, password) {
+function registerUser(username, password, bodyInfo) {
   ensureDefaultAdmin();
 
   const users = readJson();
@@ -62,8 +67,22 @@ function registerUser(username, password) {
       ? (Math.max(...users.map((u) => Number(u.id) || 0)) || 0) + 1
       : 1;
 
-  // đơn giản: nếu username là "admin" thì role = admin
   const role = username === "admin" ? "admin" : "user";
+
+  const gender =
+    bodyInfo && bodyInfo.gender ? String(bodyInfo.gender) : null;
+  const heightCm =
+    bodyInfo && bodyInfo.heightCm
+      ? Number(bodyInfo.heightCm) || null
+      : null;
+  const weightKg =
+    bodyInfo && bodyInfo.weightKg
+      ? Number(bodyInfo.weightKg) || null
+      : null;
+  const birthYear =
+    bodyInfo && bodyInfo.birthYear
+      ? Number(bodyInfo.birthYear) || null
+      : null;
 
   const user = {
     id: nextId,
@@ -71,7 +90,12 @@ function registerUser(username, password) {
     password,
     role,
     isLocked: false,
+    gender,
+    heightCm,
+    weightKg,
+    birthYear,
   };
+
   users.push(user);
   writeJson(users);
 
@@ -82,6 +106,10 @@ function registerUser(username, password) {
       username: user.username,
       role: user.role,
       isLocked: user.isLocked,
+      gender: user.gender,
+      heightCm: user.heightCm,
+      weightKg: user.weightKg,
+      birthYear: user.birthYear,
     },
   };
 }
@@ -111,34 +139,45 @@ function loginUser(username, password) {
       username: user.username,
       role: user.role || "user",
       isLocked: !!user.isLocked,
+      gender: user.gender ?? null,
+      heightCm: user.heightCm ?? null,
+      weightKg: user.weightKg ?? null,
+      birthYear: user.birthYear ?? null,
     },
   };
 }
 
-/* =============== HÀM DÙNG CHO ADMIN =============== */
+/* ====== HÀM DÙNG CHO ADMIN ====== */
 
 function getAllUsers() {
   ensureDefaultAdmin();
   const users = readJson();
-  // Ẩn password khi trả ra
   return users.map((u) => ({
     id: u.id,
     username: u.username,
     role: u.role || "user",
     isLocked: !!u.isLocked,
+    gender: u.gender ?? null,
+    heightCm: u.heightCm ?? null,
+    weightKg: u.weightKg ?? null,
+    birthYear: u.birthYear ?? null,
   }));
 }
 
 function getUserById(id) {
   ensureDefaultAdmin();
   const users = readJson();
-  const user = users.find((u) => Number(u.id) === Number(id));
-  if (!user) return null;
+  const u = users.find((x) => Number(x.id) === Number(id));
+  if (!u) return null;
   return {
-    id: user.id,
-    username: user.username,
-    role: user.role || "user",
-    isLocked: !!user.isLocked,
+    id: u.id,
+    username: u.username,
+    role: u.role || "user",
+    isLocked: !!u.isLocked,
+    gender: u.gender ?? null,
+    heightCm: u.heightCm ?? null,
+    weightKg: u.weightKg ?? null,
+    birthYear: u.birthYear ?? null,
   };
 }
 
@@ -151,12 +190,15 @@ function updateUserById(id, patch) {
   const allowed = {};
   if (patch.role) allowed.role = patch.role;
   if (typeof patch.isLocked !== "undefined") allowed.isLocked = patch.isLocked;
+  if (typeof patch.gender !== "undefined") allowed.gender = patch.gender;
+  if (typeof patch.heightCm !== "undefined")
+    allowed.heightCm = patch.heightCm;
+  if (typeof patch.weightKg !== "undefined")
+    allowed.weightKg = patch.weightKg;
+  if (typeof patch.birthYear !== "undefined")
+    allowed.birthYear = patch.birthYear;
 
-  users[idx] = {
-    ...users[idx],
-    ...allowed,
-  };
-
+  users[idx] = { ...users[idx], ...allowed };
   writeJson(users);
 
   const u = users[idx];
@@ -165,6 +207,10 @@ function updateUserById(id, patch) {
     username: u.username,
     role: u.role || "user",
     isLocked: !!u.isLocked,
+    gender: u.gender ?? null,
+    heightCm: u.heightCm ?? null,
+    weightKg: u.weightKg ?? null,
+    birthYear: u.birthYear ?? null,
   };
 }
 

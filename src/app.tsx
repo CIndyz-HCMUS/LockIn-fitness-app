@@ -13,10 +13,12 @@ import DailyPage from "./pages/DailyPage";
 import PlanPage from "./pages/PlanPage";
 import WeeklyReportPage from "./pages/WeeklyReportPage";
 import AdminPage from "./pages/AdminPage";
+import OnboardingPage from "./pages/OnboardingPage";
 
 type Screen =
   | "login"
   | "register"
+  | "onboarding"
   | "dashboard"
   | "meals"
   | "activity"
@@ -36,13 +38,18 @@ const InnerApp: React.FC = () => {
 
   const [screen, setScreen] = useState<Screen>("login");
 
-  // Khi user login xong thì nhảy sang Dashboard, khi logout quay về Login
+  // lưu tạm username + password từ bước đăng ký
+  const [pendingCreds, setPendingCreds] = useState<{
+    username: string;
+    password: string;
+  } | null>(null);
+
+  // Khi user login (user != null) thì nhảy sang dashboard
   useEffect(() => {
     if (user) {
       setScreen("dashboard");
-    } else {
-      setScreen("login");
     }
+    // KHÔNG else setScreen("login") để tránh ép các màn register/onboarding về login
   }, [user]);
 
   const handleLogout = () => {
@@ -51,49 +58,66 @@ const InnerApp: React.FC = () => {
   };
 
   // ================== HIỂN THỊ KHI CHƯA ĐĂNG NHẬP ==================
-  if (!user && (screen === "login" || screen === "register")) {
+
+  // LOGIN
+  if (!user && screen === "login") {
     return (
       <div
         style={{
-          minHeight: "100vh",
+          position: "fixed",
+          inset: 0,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#f5f5f5",
+          background: "linear-gradient(to bottom, #6a89cc, #dcdde1)",
         }}
       >
         <div
           style={{
-            width: 400,
-            padding: 24,
-            borderRadius: 8,
+            width: 420,
             background: "#fff",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            padding: 24,
+            borderRadius: 12,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
           }}
         >
-          {screen === "login" ? (
-            <>
-              <h2 style={{ textAlign: "center", marginBottom: 16 }}>
-                LockIn Fitness – Đăng nhập
-              </h2>
-              <LoginPage
-                onSwitchToRegister={() => setScreen("register")}
-              />
-            </>
-          ) : (
-            <>
-              <h2 style={{ textAlign: "center", marginBottom: 16 }}>
-                LockIn Fitness – Đăng ký
-              </h2>
-              <RegisterPage onSwitchToLogin={() => setScreen("login")} />
-            </>
-          )}
+          <h2 style={{ textAlign: "center", marginBottom: 16 }}>
+            LockIn Fitness – Đăng nhập
+          </h2>
+          <LoginPage onSwitchToRegister={() => setScreen("register")} />
         </div>
       </div>
     );
   }
 
-  // Nếu chưa có user (và screen khác login/register) thì quay về login
+  // REGISTER (BƯỚC 1 – chỉ tài khoản)
+  if (!user && screen === "register") {
+    return (
+      <RegisterPage
+        onSwitchToLogin={() => setScreen("login")}
+        onGoNext={(cred) => {
+          setPendingCreds(cred);
+          setScreen("onboarding");
+        }}
+      />
+    );
+  }
+
+  // ONBOARDING (BƯỚC 2 – Get Started như hình)
+  if (!user && screen === "onboarding") {
+    return (
+      <OnboardingPage
+        username={pendingCreds?.username || ""}
+        password={pendingCreds?.password || ""}
+        onDone={() => {
+          // hoàn tất: quay lại login để user đăng nhập
+          setScreen("login");
+        }}
+      />
+    );
+  }
+
+  // Nếu chưa đăng nhập mà lại vào screen khác thì cho quay về login
   if (!user) {
     return (
       <div style={{ padding: 24 }}>
@@ -105,7 +129,6 @@ const InnerApp: React.FC = () => {
 
   // ================== SAU KHI ĐĂNG NHẬP ==================
   const isAdmin = user.role === "admin" || user.username === "admin";
-
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>

@@ -3,13 +3,15 @@ const { contextBridge, ipcRenderer } = require("electron");
 const api = {
   // ---------- AUTH ----------
   auth: {
-    register(username, password) {
-      return ipcRenderer.invoke("auth:register", username, password);
-    },
-    login(username, password) {
-      return ipcRenderer.invoke("auth:login", username, password);
-    },
+  register(username, password, body) {
+    // body: { gender, heightCm, weightKg, birthYear }
+    return ipcRenderer.invoke("auth:register", username, password, body);
   },
+  login(username, password) {
+    return ipcRenderer.invoke("auth:login", username, password);
+  },
+},
+
 
   // ---------- FOODS ----------
   foods: {
@@ -137,9 +139,19 @@ contextBridge.exposeInMainWorld("lockinAPI", api);
 contextBridge.exposeInMainWorld("authAPI", api.auth);
 
 // ADMIN API (dùng cho adminService / AdminPage)
+// ADMIN API (dùng cho adminService / AdminPage)
 contextBridge.exposeInMainWorld("adminAPI", {
+  // Users & stats
   getStats: () => ipcRenderer.invoke("admin:getStats"),
   getUsers: () => ipcRenderer.invoke("admin:getUsers"),
   getUserById: (id) => ipcRenderer.invoke("admin:getUserById", id),
   updateUser: (payload) => ipcRenderer.invoke("admin:updateUser", payload),
+
+  // 🔥 Activity CRUD cho admin
+  getActivities: () => ipcRenderer.invoke("admin:getActivities"),
+  createActivity: (data) => ipcRenderer.invoke("admin:createActivity", data),
+  updateActivity: (id, data) =>
+    ipcRenderer.invoke("admin:updateActivity", id, data),
+  deleteActivity: (id) => ipcRenderer.invoke("admin:deleteActivity", id),
 });
+

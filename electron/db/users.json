@@ -22,6 +22,6 @@
     "username": "3",
     "password": "3",
     "role": "user",
-    "isLocked": true
+    "isLocked": false
   }
 ]
