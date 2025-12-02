@@ -1,29 +1,130 @@
-// electron/preload.js
 const { contextBridge, ipcRenderer } = require("electron");
 
-try {
-  contextBridge.exposeInMainWorld("lockinAPI", {
-    auth: {
-      register: (u, p) => ipcRenderer.invoke("auth:register", u, p),
-      login: (u, p) => ipcRenderer.invoke("auth:login", u, p),
+const api = {
+  // ---------- AUTH ----------
+  auth: {
+    register(username, password) {
+      return ipcRenderer.invoke("auth:register", username, password);
     },
+    login(username, password) {
+      return ipcRenderer.invoke("auth:login", username, password);
+    },
+  },
 
-    meals: {
-      searchFoods: (q) => ipcRenderer.invoke("meals:searchFoods", q),
-      addEntry: (payload) => ipcRenderer.invoke("meals:addEntry", payload),
-      getForDate: (userId, date) =>
-        ipcRenderer.invoke("meals:getForDate", userId, date),
-      deleteEntry: (id) => ipcRenderer.invoke("meals:deleteEntry", id),
+  foods: {
+    add(data) {
+      return ipcRenderer.invoke("foods:add", data);
     },
+     delete(id) {
+    return ipcRenderer.invoke("foods:delete", id);
+  },
+  },
 
-    activity: {
-      getList: () => ipcRenderer.invoke("activity:getList"),
-      getForDate: (userId, date) =>
-        ipcRenderer.invoke("activity:getForDate", userId, date),
-      add: (payload) => ipcRenderer.invoke("activity:add", payload),
-      delete: (id) => ipcRenderer.invoke("activity:delete", id),
+  // ---------- MEALS ----------
+  meals: {
+    searchFoods(query) {
+      return ipcRenderer.invoke("meals:searchFoods", query);
     },
-  });
-} catch (e) {
-  console.error("Failed to expose lockinAPI:", e);
-}
+    addEntry(data) {
+      return ipcRenderer.invoke("meals:addEntry", data);
+    },
+    getForDate(userId, date) {
+      return ipcRenderer.invoke("meals:getForDate", userId, date);
+    },
+    deleteEntry(id) {
+      return ipcRenderer.invoke("meals:deleteEntry", id);
+    },
+      getFavorites(userId) {
+      return ipcRenderer.invoke("meals:getFavorites", userId);
+    },
+    toggleFavorite(userId, foodId) {
+      return ipcRenderer.invoke("meals:toggleFavorite", userId, foodId);
+    },
+  },
+
+  // ---------- ACTIVITY ----------
+  activity: {
+    getList() {
+      return ipcRenderer.invoke("activity:getList");
+    },
+    add(payload) {
+      return ipcRenderer.invoke("activity:add", payload);
+    },
+    getForDate(userId, date) {
+      return ipcRenderer.invoke("activity:getForDate", userId, date);
+    },
+    delete(id) {
+      return ipcRenderer.invoke("activity:delete", id);
+    },
+  },
+
+  // ---------- RELAX ----------
+  relax: {
+    add(entry) {
+      // { userId, date, activity, duration, note }
+      return ipcRenderer.invoke("relax:add", entry);
+    },
+    getForDate(userId, date) {
+      return ipcRenderer.invoke("relax:getForDate", userId, date);
+    },
+    delete(id) {
+      return ipcRenderer.invoke("relax:delete", id);
+    },
+  },
+
+  // ---------- SLEEP ----------
+  sleep: {
+    add(entry) {
+      // { userId, date, bedtime, wakeTime, duration, quality, note }
+      return ipcRenderer.invoke("sleep:add", entry);
+    },
+    getForDate(userId, date) {
+      return ipcRenderer.invoke("sleep:getForDate", userId, date);
+    },
+    delete(id) {
+      return ipcRenderer.invoke("sleep:delete", id);
+    },
+  },
+
+  // ---------- GOAL ----------
+  goal: {
+    getForUser(userId) {
+      return ipcRenderer.invoke("goal:getForUser", userId);
+    },
+    save(payload) {
+      // { userId, dailyCalorieGoal, targetWeight, waterGoal, stepGoal }
+      return ipcRenderer.invoke("goal:save", payload);
+    },
+  },
+  daily: {
+    getForDate(userId, date) {
+      return ipcRenderer.invoke("daily:getForDate", userId, date);
+    },
+    save(payload) {
+      return ipcRenderer.invoke("daily:save", payload);
+    },
+  },
+    plan: {
+    getForUser(userId) {
+      return ipcRenderer.invoke("plan:getForUser", userId);
+    },
+    purchase(payload) {
+      return ipcRenderer.invoke("plan:purchase", payload);
+    },
+    updateProgress(userId, progress) {
+      return ipcRenderer.invoke("plan:updateProgress", userId, progress);
+    },
+  },
+
+  transactions: {
+    getForUser(userId) {
+      return ipcRenderer.invoke("transactions:getForUser", userId);
+    },
+},
+
+};
+  
+
+// expose dưới cả 2 tên cho code cũ / mới
+contextBridge.exposeInMainWorld("api", api);
+contextBridge.exposeInMainWorld("lockinAPI", api);

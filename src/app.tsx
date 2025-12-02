@@ -6,8 +6,26 @@ import RegisterPage from "./pages/RegisterPage";
 import MealsPage from "./pages/MealsPage";
 import ActivityPage from "./pages/ActivityPage";
 import DashboardPage from "./pages/DashboardPage";
+import RelaxPage from "./pages/RelaxPage";
+import SleepPage from "./pages/SleepPage";
+import GoalPage from "./pages/GoalPage";
+import DailyPage from "./pages/DailyPage";
+import PlanPage from "./pages/PlanPage";
+import WeeklyReportPage from "./pages/WeeklyReportPage";
 
-type Screen = "login" | "register" | "dashboard" | "meals" | "activity";
+
+type Screen =
+  | "login"
+  | "register"
+  | "dashboard"
+  | "meals"
+  | "activity"
+  | "relax"
+  | "sleep"
+  | "goal"
+  | "daily"
+  | "plan"
+  | "weekly"
 
 const InnerApp: React.FC = () => {
   const { user, setUser } = useAuth();
@@ -47,6 +65,13 @@ const InnerApp: React.FC = () => {
         <button onClick={() => setScreen("dashboard")}>Dashboard</button>
         <button onClick={() => setScreen("meals")}>Log bữa ăn</button>
         <button onClick={() => setScreen("activity")}>Log hoạt động</button>
+        <button onClick={() => setScreen("relax")}>Log thư giãn</button>
+        <button onClick={() => setScreen("sleep")}>Log giấc ngủ</button>
+        <button onClick={() => setScreen("goal")}>Mục tiêu</button>
+        <button onClick={() => setScreen("daily")}>Nhật ký ngày</button>
+        <button onClick={() => setScreen("plan")}>Gói cá nhân</button> 
+        <button onClick={() => setScreen("weekly")}>Báo cáo tuần</button>
+
 
         <hr />
         <button onClick={() => setUser(null)}>Đăng xuất</button>
@@ -56,6 +81,12 @@ const InnerApp: React.FC = () => {
         {screen === "dashboard" && <DashboardPage userId={user.id} />}
         {screen === "meals" && <MealsPage userId={user.id} />}
         {screen === "activity" && <ActivityPage userId={user.id} />}
+        {screen === "relax" && <RelaxPage userId={user.id} />}
+        {screen === "sleep" && <SleepPage userId={user.id} />}
+        {screen === "goal" && <GoalPage userId={user.id} />}
+        {screen === "daily" && <DailyPage userId={user.id} />} 
+        {screen === "plan" && <PlanPage userId={user.id} />} 
+        {screen === "weekly" && <WeeklyReportPage userId={user.id} />}
       </div>
     </div>
   );

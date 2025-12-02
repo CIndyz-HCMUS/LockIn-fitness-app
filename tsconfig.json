@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "types": ["node", "vite/client"]
   },
-  "include": ["src", "electron", "shared"]
+  "include": ["src", "electron", "shared", "src/global.d.ts"]
 }

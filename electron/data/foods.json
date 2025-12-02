@@ -1,6 +1,26 @@
 [
-  { "id": "rice", "name": "Cơm trắng", "unit": "100g", "calories": 130 },
-  { "id": "chicken_breast", "name": "Ức gà luộc", "unit": "100g", "calories": 165 },
-  { "id": "egg", "name": "Trứng gà", "unit": "1 quả", "calories": 70 },
-  { "id": "banana", "name": "Chuối", "unit": "1 quả", "calories": 90 }
+  {
+    "id": 1,
+    "name": "Cơm trắng",
+    "brand": null,
+    "calories": 130,
+    "portionSize": "100g",
+    "carb": 28,
+    "protein": 2.7,
+    "fat": 0.3,
+    "fiber": 0.2,
+    "preparation": "cooked"
+  },
+  {
+    "id": 2,
+    "name": "Ức gà sống",
+    "brand": null,
+    "calories": 120,
+    "portionSize": "100g",
+    "carb": 0,
+    "protein": 22,
+    "fat": 2,
+    "fiber": 0,
+    "preparation": "raw"
+  }
 ]
