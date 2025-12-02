@@ -13,6 +13,8 @@ const dailyLogRepo = require("./db/dailyLogRepo");
 const personalPlanRepo = require("./db/personalPlanRepo");
 const transactionRepo = require("./db/transactionRepo");
 
+// ⭐ Load IPC cho admin (stats, users, ...)
+require("./ipc/admin.ipc");
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -24,6 +26,9 @@ function createWindow() {
     height: 800,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
+      // nên bật 2 option này cho an toàn
+      contextIsolation: true,
+      nodeIntegration: false,
     },
   });
 
@@ -38,6 +43,18 @@ function createWindow() {
 app.whenReady().then(() => {
   console.log("[electron] app ready");
   createWindow();
+
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
 });
 
 // ==================== AUTH ====================
@@ -53,14 +70,15 @@ ipcMain.handle("auth:login", (_, username, password) => {
 ipcMain.handle("meals:searchFoods", (_, query) => {
   return foodRepo.searchFoods(query || "");
 });
+
 ipcMain.handle("foods:add", (_, payload) => {
   // payload: { name, unit, calories, preparation, carb?, protein?, fat?, fiber?, brand? }
   return foodRepo.addFood(payload);
 });
+
 ipcMain.handle("foods:delete", (_, foodId) => {
   return foodRepo.deleteFood(foodId);
 });
-
 
 ipcMain.handle("meals:addEntry", (_, data) => {
   return mealLogRepo.addEntry(data);
@@ -84,9 +102,6 @@ ipcMain.handle("meals:toggleFavorite", (_, userId, foodId) => {
   console.log("[ipc] meals:toggleFavorite", userId, foodId);
   return favoriteFoodRepo.toggleFavorite(userId, foodId);
 });
-// ------------ADD FOOD------------------
-
-
 
 // ==================== ACTIVITY ====================
 ipcMain.handle("activity:getList", () => {
@@ -132,6 +147,8 @@ ipcMain.handle("sleep:getForDate", (_, userId, date) => {
 ipcMain.handle("sleep:delete", (_, id) => {
   return sleepLogRepo.deleteEntry(id);
 });
+
+// ==================== DAILY LOG ====================
 ipcMain.handle("daily:getForDate", (_, userId, date) => {
   return dailyLogRepo.getForDate(userId, date);
 });
@@ -141,7 +158,6 @@ ipcMain.handle("daily:save", (_, payload) => {
 });
 
 // ==================== GOAL (inline) ====================
-
 const GOALS_FILE = path.join(__dirname, "db", "goals.json");
 
 function readGoals() {
@@ -194,9 +210,10 @@ ipcMain.handle("goal:getForUser", (_, userId) => {
 ipcMain.handle("goal:save", (_, payload) => {
   return saveGoalForUser(payload);
 });
+
 // ==================== PERSONAL PLAN & TRANSACTION ====================
 
-// ==================== PERSONAL PLAN ====================
+// PERSONAL PLAN
 ipcMain.handle("plan:getForUser", (_, userId) => {
   return personalPlanRepo.getCurrentPlan(userId);
 });
@@ -219,7 +236,7 @@ ipcMain.handle("plan:updateProgress", (_, userId, progress) => {
   return personalPlanRepo.updateProgress(userId, progress);
 });
 
-// =========== TRANSACTIONS ===========
+// TRANSACTIONS
 ipcMain.handle("transactions:getForUser", (_, userId) => {
   return transactionRepo.getByUser(userId);
 });

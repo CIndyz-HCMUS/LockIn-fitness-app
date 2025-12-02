@@ -11,13 +11,14 @@ const api = {
     },
   },
 
+  // ---------- FOODS ----------
   foods: {
     add(data) {
       return ipcRenderer.invoke("foods:add", data);
     },
-     delete(id) {
-    return ipcRenderer.invoke("foods:delete", id);
-  },
+    delete(id) {
+      return ipcRenderer.invoke("foods:delete", id);
+    },
   },
 
   // ---------- MEALS ----------
@@ -34,7 +35,7 @@ const api = {
     deleteEntry(id) {
       return ipcRenderer.invoke("meals:deleteEntry", id);
     },
-      getFavorites(userId) {
+    getFavorites(userId) {
       return ipcRenderer.invoke("meals:getFavorites", userId);
     },
     toggleFavorite(userId, foodId) {
@@ -96,6 +97,8 @@ const api = {
       return ipcRenderer.invoke("goal:save", payload);
     },
   },
+
+  // ---------- DAILY ----------
   daily: {
     getForDate(userId, date) {
       return ipcRenderer.invoke("daily:getForDate", userId, date);
@@ -104,7 +107,9 @@ const api = {
       return ipcRenderer.invoke("daily:save", payload);
     },
   },
-    plan: {
+
+  // ---------- PLAN ----------
+  plan: {
     getForUser(userId) {
       return ipcRenderer.invoke("plan:getForUser", userId);
     },
@@ -116,15 +121,25 @@ const api = {
     },
   },
 
+  // ---------- TRANSACTIONS ----------
   transactions: {
     getForUser(userId) {
       return ipcRenderer.invoke("transactions:getForUser", userId);
     },
-},
-
+  },
 };
-  
 
 // expose dưới cả 2 tên cho code cũ / mới
 contextBridge.exposeInMainWorld("api", api);
 contextBridge.exposeInMainWorld("lockinAPI", api);
+
+// shortcut cho auth (dùng cho authService)
+contextBridge.exposeInMainWorld("authAPI", api.auth);
+
+// ADMIN API (dùng cho adminService / AdminPage)
+contextBridge.exposeInMainWorld("adminAPI", {
+  getStats: () => ipcRenderer.invoke("admin:getStats"),
+  getUsers: () => ipcRenderer.invoke("admin:getUsers"),
+  getUserById: (id) => ipcRenderer.invoke("admin:getUserById", id),
+  updateUser: (payload) => ipcRenderer.invoke("admin:updateUser", payload),
+});

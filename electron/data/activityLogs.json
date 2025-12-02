@@ -34,5 +34,14 @@
     "name": "Chạy bộ",
     "duration": 30,
     "calories": 360
+  },
+  {
+    "id": 1764685138404,
+    "userId": 2,
+    "date": "2025-12-02",
+    "activityId": "cycle",
+    "name": "Đạp xe",
+    "duration": 30,
+    "calories": 240
   }
 ]

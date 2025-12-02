@@ -1,102 +1,107 @@
 // electron/db/userRepo.js
-
 const fs = require("fs");
 const path = require("path");
-const crypto = require("crypto");
 
-const dbPath = path.join(__dirname, "users.json");
+const DATA_FILE = path.join(__dirname, "users.json");
 
-// Đảm bảo file tồn tại và ít nhất là "[]"
-function ensureFile() {
-  if (!fs.existsSync(dbPath)) {
-    fs.writeFileSync(dbPath, "[]", "utf8");
-    return;
-  }
-
-  // Nếu file tồn tại nhưng rỗng -> ghi lại "[]"
-  const raw = fs.readFileSync(dbPath, "utf8");
-  if (!raw.trim()) {
-    fs.writeFileSync(dbPath, "[]", "utf8");
-  }
-}
-
-function loadUsers() {
-  ensureFile();
-
+function readJson() {
   try {
-    const raw = fs.readFileSync(dbPath, "utf8").trim();
-
-    // Nếu vì lý do gì đó vẫn rỗng → trả về mảng rỗng
-    if (!raw) return [];
-
-    const data = JSON.parse(raw);
-    if (!Array.isArray(data)) {
-      console.warn("users.json không phải mảng, reset về []");
-      return [];
-    }
-    return data;
-  } catch (err) {
-    console.error("Failed to parse users.json, reset về []", err);
-    // Nếu JSON bị hỏng → không cho app crash, trả mảng rỗng
+    const raw = fs.readFileSync(DATA_FILE, "utf8");
+    if (!raw.trim()) return [];
+    return JSON.parse(raw);
+  } catch (e) {
     return [];
   }
 }
 
-function saveUsers(users) {
-  try {
-    fs.writeFileSync(dbPath, JSON.stringify(users, null, 2), "utf8");
-    return true;
-  } catch (err) {
-    console.error("Failed to write users.json", err);
-    return false;
+function writeJson(data) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
+}
+
+/**
+ * Tạo admin mặc định nếu chưa có
+ */
+function ensureDefaultAdmin() {
+  const users = readJson();
+  const hasAdmin = users.some(
+    (u) => u.role === "admin" || u.username === "admin"
+  );
+  if (!hasAdmin) {
+    const nextId =
+      users.length > 0
+        ? (Math.max(...users.map((u) => Number(u.id) || 0)) || 0) + 1
+        : 1;
+
+    users.push({
+      id: nextId,
+      username: "admin",
+      password: "admin123", // demo, sau có thể đổi
+      role: "admin",
+      isLocked: false,
+    });
+    writeJson(users);
+    console.log(
+      "[userRepo] Created default admin account: admin / admin123"
+    );
   }
 }
 
-function hashPassword(password) {
-  return crypto.createHash("sha256").update(password).digest("hex");
-}
-
+/**
+ * Đăng ký user mới
+ */
 function registerUser(username, password) {
-  const users = loadUsers();
+  ensureDefaultAdmin();
 
-  const existing = users.find((u) => u.username === username);
-  if (existing) {
-    return { error: "Tên đăng nhập đã tồn tại" };
+  const users = readJson();
+  if (users.find((u) => u.username === username)) {
+    return { ok: false, error: "Username đã tồn tại" };
   }
+
+  const nextId =
+    users.length > 0
+      ? (Math.max(...users.map((u) => Number(u.id) || 0)) || 0) + 1
+      : 1;
+
+  // đơn giản: nếu username là "admin" thì role = admin
+  const role = username === "admin" ? "admin" : "user";
 
   const user = {
-    id: crypto.randomUUID(),
+    id: nextId,
     username,
-    passwordHash: hashPassword(password),
-    createdAt: Date.now(),
+    password,
+    role,
+    isLocked: false,
   };
-
   users.push(user);
-  const ok = saveUsers(users);
-  if (!ok) {
-    return { error: "Không lưu được dữ liệu người dùng" };
-  }
+  writeJson(users);
 
-  // Trả về đúng format frontend đang mong đợi
   return {
     ok: true,
     user: {
       id: user.id,
       username: user.username,
+      role: user.role,
+      isLocked: user.isLocked,
     },
   };
 }
 
+/**
+ * Đăng nhập
+ */
 function loginUser(username, password) {
-  const users = loadUsers();
+  ensureDefaultAdmin();
 
-  const passwordHash = hashPassword(password);
+  const users = readJson();
   const user = users.find(
-    (u) => u.username === username && u.passwordHash === passwordHash
+    (u) => u.username === username && u.password === password
   );
-
   if (!user) {
-    return { error: "Sai tên đăng nhập hoặc mật khẩu" };
+    return { ok: false, error: "Sai username hoặc password" };
+  }
+
+  if (user.isLocked) {
+    return { ok: false, error: "Tài khoản đã bị khoá bởi admin" };
   }
 
   return {
@@ -104,14 +109,69 @@ function loginUser(username, password) {
     user: {
       id: user.id,
       username: user.username,
+      role: user.role || "user",
+      isLocked: !!user.isLocked,
     },
   };
 }
 
-// Export cả hai tên phòng trường hợp main.js dùng tên khác
+/* =============== HÀM DÙNG CHO ADMIN =============== */
+
+function getAllUsers() {
+  ensureDefaultAdmin();
+  const users = readJson();
+  // Ẩn password khi trả ra
+  return users.map((u) => ({
+    id: u.id,
+    username: u.username,
+    role: u.role || "user",
+    isLocked: !!u.isLocked,
+  }));
+}
+
+function getUserById(id) {
+  ensureDefaultAdmin();
+  const users = readJson();
+  const user = users.find((u) => Number(u.id) === Number(id));
+  if (!user) return null;
+  return {
+    id: user.id,
+    username: user.username,
+    role: user.role || "user",
+    isLocked: !!user.isLocked,
+  };
+}
+
+function updateUserById(id, patch) {
+  ensureDefaultAdmin();
+  const users = readJson();
+  const idx = users.findIndex((u) => Number(u.id) === Number(id));
+  if (idx === -1) return null;
+
+  const allowed = {};
+  if (patch.role) allowed.role = patch.role;
+  if (typeof patch.isLocked !== "undefined") allowed.isLocked = patch.isLocked;
+
+  users[idx] = {
+    ...users[idx],
+    ...allowed,
+  };
+
+  writeJson(users);
+
+  const u = users[idx];
+  return {
+    id: u.id,
+    username: u.username,
+    role: u.role || "user",
+    isLocked: !!u.isLocked,
+  };
+}
+
 module.exports = {
   registerUser,
   loginUser,
-  register: registerUser,
-  login: loginUser,
+  getAllUsers,
+  getUserById,
+  updateUserById,
 };
