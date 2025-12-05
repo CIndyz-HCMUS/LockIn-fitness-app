@@ -116,13 +116,13 @@ const SleepPage: React.FC<SleepPageProps> = ({ userId }) => {
 
   return (
     <div style={{ padding: 24 }}>
-      <h1>Log giấc ngủ ({today})</h1>
+      <h1>Sleep Tracking({today})</h1>
 
       <section style={{ marginBottom: 24 }}>
-        <h3>Thêm giấc ngủ</h3>
+        <h3>Add sleep log</h3>
         <div style={{ marginBottom: 8 }}>
           <label>
-            Giờ đi ngủ:{" "}
+            Sleep start time:{" "}
             <input
               type="time"
               value={bedtime}
@@ -132,7 +132,7 @@ const SleepPage: React.FC<SleepPageProps> = ({ userId }) => {
         </div>
         <div style={{ marginBottom: 8 }}>
           <label>
-            Giờ thức dậy:{" "}
+            Wake-up time:{" "}
             <input
               type="time"
               value={wakeTime}
@@ -141,12 +141,12 @@ const SleepPage: React.FC<SleepPageProps> = ({ userId }) => {
           </label>
         </div>
         <div style={{ marginBottom: 8 }}>
-          <span>Thời lượng ước tính: </span>
-          <b>{currentDuration} giờ</b>
+          <span>Estimated duration: </span>
+          <b>{currentDuration} hour(s)</b>
         </div>
         <div style={{ marginBottom: 8 }}>
           <label>
-            Chất lượng giấc ngủ (1–5):{" "}
+            Sleep quality (1–5):{" "}
             <input
               type="number"
               min={1}
@@ -159,45 +159,45 @@ const SleepPage: React.FC<SleepPageProps> = ({ userId }) => {
         </div>
         <div style={{ marginBottom: 8 }}>
           <textarea
-            placeholder="Ghi chú (mơ gì, cảm giác khi thức dậy...)"
+            placeholder="Notes (dreams, how you felt upon waking, etc.)"
             style={{ width: 360, height: 60 }}
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
         </div>
-        <button onClick={handleAdd}>Lưu giấc ngủ</button>
+        <button onClick={handleAdd}>Save Sleep Log</button>
       </section>
 
       <section>
-        <h3>Giấc ngủ hôm nay</h3>
+        <h3>Today's sleep</h3>
         {logs.length === 0 ? (
-          <p>Chưa có log giấc ngủ nào.</p>
+          <p>There are no sleep logs yet.</p>
         ) : (
           <>
             <p>
-              Trung bình: <b>{avgDuration}</b> giờ, chất lượng{" "}
+              Average: <b>{avgDuration}</b> Hour(s), Quality{" "}
               <b>{avgQuality}</b>/5
             </p>
             <table style={{ borderCollapse: "collapse", minWidth: 500 }}>
               <thead>
                 <tr>
                   <th style={{ borderBottom: "1px solid #ccc", padding: 4 }}>
-                    Đi ngủ
+                    Bedtime
                   </th>
                   <th style={{ borderBottom: "1px solid #ccc", padding: 4 }}>
-                    Thức dậy
+                    Wakeup
                   </th>
                   <th style={{ borderBottom: "1px solid #ccc", padding: 4 }}>
-                    Thời lượng (giờ)
+                    Duration
                   </th>
                   <th style={{ borderBottom: "1px solid #ccc", padding: 4 }}>
-                    Chất lượng
+                    Quality
                   </th>
                   <th style={{ borderBottom: "1px solid #ccc", padding: 4 }}>
-                    Ghi chú
+                    Note(s)
                   </th>
                   <th style={{ borderBottom: "1px solid #ccc", padding: 4 }}>
-                    Hành động
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -232,7 +232,7 @@ const SleepPage: React.FC<SleepPageProps> = ({ userId }) => {
                     <td
                       style={{ borderBottom: "1px solid #eee", padding: 4 }}
                     >
-                      <button onClick={() => handleDelete(log.id)}>Xoá</button>
+                      <button onClick={() => handleDelete(log.id)}>Delete</button>
                     </td>
                   </tr>
                 ))}

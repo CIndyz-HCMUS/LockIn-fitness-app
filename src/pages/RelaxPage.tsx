@@ -76,14 +76,14 @@ const RelaxPage: React.FC<RelaxPageProps> = ({ userId }) => {
 
   return (
     <div style={{ padding: 24 }}>
-      <h1>Log thư giãn ({today})</h1>
+      <h1>Relaxation Tracking({today})</h1>
 
       <section style={{ marginBottom: 24 }}>
-        <h3>Thêm hoạt động thư giãn</h3>
+        <h3>Add relaxation activity</h3>
         <div style={{ marginBottom: 8 }}>
           <input
             style={{ width: 260, marginRight: 8 }}
-            placeholder="Ví dụ: Thiền, đọc sách, yoga..."
+            placeholder="Examples: meditation, reading, yoga..."
             value={activity}
             onChange={(e) => setActivity(e.target.value)}
           />
@@ -99,38 +99,38 @@ const RelaxPage: React.FC<RelaxPageProps> = ({ userId }) => {
         </div>
         <div style={{ marginBottom: 8 }}>
           <textarea
-            placeholder="Ghi chú (không bắt buộc)..."
+            placeholder="Notes (optional)..."
             style={{ width: 360, height: 60 }}
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
         </div>
-        <button onClick={handleAdd}>Lưu thư giãn</button>
+        <button onClick={handleAdd}>Save Relaxation Log</button>
       </section>
 
       <section>
-        <h3>Hoạt động thư giãn hôm nay</h3>
+        <h3>Today's Relaxation Activities</h3>
         <p>
-          Tổng thời gian: <b>{totalMinutes}</b> phút
+          Total duration: <b>{totalMinutes}</b> Minute(s)
         </p>
 
         {logs.length === 0 ? (
-          <p>Chưa có hoạt động nào.</p>
+          <p>There are no activities yet.</p>
         ) : (
           <table style={{ borderCollapse: "collapse", minWidth: 400 }}>
             <thead>
               <tr>
                 <th style={{ borderBottom: "1px solid #ccc", padding: 4 }}>
-                  Hoạt động
+                  Activity
                 </th>
                 <th style={{ borderBottom: "1px solid #ccc", padding: 4 }}>
-                  Thời lượng (phút)
+                  Duration(minute(s))
                 </th>
                 <th style={{ borderBottom: "1px solid #ccc", padding: 4 }}>
-                  Ghi chú
+                  Note(s)
                 </th>
                 <th style={{ borderBottom: "1px solid #ccc", padding: 4 }}>
-                  Hành động
+                  Actions
                 </th>
               </tr>
             </thead>

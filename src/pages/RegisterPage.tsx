@@ -1,154 +1,165 @@
-// src/pages/RegisterPage.tsx
 import React, { useState } from "react";
+import "./RegisterPage.css";
 
-interface RegisterPageProps {
+interface RegisterProps {
   onSwitchToLogin: () => void;
-  onGoNext: (cred: { username: string; password: string }) => void;
+  onGoNext: (cred: { username: string; password: string; email: string; age: string }) => void;
 }
 
-const RegisterPage: React.FC<RegisterPageProps> = ({
-  onSwitchToLogin,
-  onGoNext,
+const RegisterPage: React.FC<RegisterProps> = ({
+onSwitchToLogin,
+onGoNext,
 }) => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+const [firstName, setFirstName] = useState("");
+const [lastName, setLastName] = useState("");
+const [password, setPassword] = useState("");
+const [confirmPassword, setConfirmPassword] = useState("");
+const [email, setEmail] = useState("");
+const [age, setAge] = useState("");
+const [error, setError] = useState<string | null>(null);
+ const handleSubmit = (e: React.FormEvent) => {
+ e.preventDefault();
+  setError("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  // Trim tất cả để tránh lỗi có khoảng trắng
+  const fn = firstName.trim();
+  const ln = lastName.trim();
+  const pw = password.trim();
+  const cpw = confirmPassword.trim();
+  const em = email.trim();
+  const ag = age.trim();
 
-    if (!username.trim() || !password) {
-      setError("Vui lòng nhập đầy đủ username và mật khẩu.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError("Mật khẩu nhập lại không khớp.");
-      return;
-    }
+  // --- Validation ---
+  if (!fn || !ln || !pw || !cpw || !em || !ag) {
+    setError("Please fill in all fields.");
+    return;
+  }
 
-    onGoNext({ username: username.trim(), password });
-  };
+  if (pw.length < 6) {
+    setError("Password must be at least 6 characters.");
+    return;
+  }
 
+  if (pw !== cpw) {
+    setError("The confirmation password does not match.");
+    return;
+  }
+
+  if (!/^\S+@\S+\.\S+$/.test(em)) {
+    setError("Please enter a valid email address.");
+    return;
+  }
+
+  if (isNaN(Number(ag)) || Number(ag) <= 0) {
+    setError("Please enter a valid age.");
+    return;
+  }
+     onGoNext({ username: fn, password:pw, email: em, age:ag });
+}
+ 
   return (
-    <div style={pageWrapperStyle}>
-      <form onSubmit={handleSubmit} style={cardStyle}>
-        <h2 style={{ textAlign: "center", marginBottom: 20 }}>
-          LockIn Fitness – Đăng ký
-        </h2>
+    <div className="page-bg">
+      {/* Logo */}
+      <div className="logo-text">LockIn</div>
 
-        <Input
-          label="Username"
-          value={username}
-          onChange={setUsername}
-          required
-        />
-        <Input
-          label="Mật khẩu"
-          type="password"
-          value={password}
-          onChange={setPassword}
-          required
-        />
-        <Input
-          label="Nhập lại mật khẩu"
-          type="password"
-          value={confirmPassword}
-          onChange={setConfirmPassword}
-          required
-        />
+      {/* Tabs */}
+      <div className="tabs-wrapper">
+        <button className="tab-btn inactive" onClick={onSwitchToLogin}>
+          Sign In
+        </button>
+        <button className="tab-btn active">Sign Up</button>
+      </div>
 
-        {error && (
-          <div style={{ color: "red", marginTop: 8, fontSize: 13 }}>
-            {error}
+      {/* Card */}
+      <div className="form-card">
+        <h2 className="form-title">Join fitness community!</h2>
+
+        <form onSubmit={handleSubmit}>
+
+          {/* Two-column name */}
+          <div className="row">
+            <label className="input-group">
+              <span>First Name</span>
+              <input
+                type="text"
+                placeholder="Trang"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </label>
+
+            <label className="input-group">
+              <span>Last Name</span>
+              <input
+                type="text"
+                placeholder="Vu"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </label>
           </div>
-        )}
 
-        <button type="submit" style={primaryButtonStyle}>
-          Tiếp tục
-        </button>
+          <label className="input-group">
+            <span>Password</span>
+            <input
+              type="password"
+              placeholder="Create a password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
 
-        <button
-          type="button"
-          onClick={onSwitchToLogin}
-          style={secondaryButtonStyle}
-        >
-          Đã có tài khoản? Đăng nhập
+           <label className="input-group">
+            <span>Confirm Password</span>
+            <input
+              type="confirmpassword"
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </label>
+
+          <label className="input-group">
+            <span>Email</span>
+            <input
+              type="email"
+              placeholder="name@gmail.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+
+          <label className="input-group">
+            <span>Age</span>
+            <input
+              type="number"
+              placeholder="Enter your age"
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+            />
+          </label>
+          {error}
+
+          <button type="submit" className="primary-btn">
+            Sign Up
+          </button>
+        </form>
+
+        <div className="divider">
+          <span>OR</span>
+        </div>
+
+        <button className="google-btn">
+          <img
+            src="https://www.svgrepo.com/show/475656/google-color.svg"
+            alt="google"
+            className="google-icon"
+          />
+          CONTINUE WITH GOOGLE
         </button>
-      </form>
+      </div>
     </div>
   );
 };
-
-// ==== styles + small input ====
-
-const pageWrapperStyle: React.CSSProperties = {
-  position: "fixed",
-  inset: 0,
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  background: "linear-gradient(to bottom, #6a89cc, #dcdde1)",
-  padding: 20,
-};
-
-const cardStyle: React.CSSProperties = {
-  width: 400,
-  maxWidth: "100%",
-  background: "#fff",
-  padding: "28px 26px",
-  borderRadius: 18,
-  boxShadow: "0 12px 30px rgba(0,0,0,0.18)",
-  boxSizing: "border-box",
-};
-
-const primaryButtonStyle: React.CSSProperties = {
-  marginTop: 16,
-  padding: "10px 14px",
-  borderRadius: 10,
-  border: "none",
-  cursor: "pointer",
-  background: "#1976d2",
-  color: "#fff",
-  fontWeight: 600,
-  width: "100%",
-};
-
-const secondaryButtonStyle: React.CSSProperties = {
-  marginTop: 8,
-  padding: "8px 10px",
-  borderRadius: 10,
-  border: "none",
-  cursor: "pointer",
-  background: "#eee",
-  width: "100%",
-};
-
-const Input: React.FC<{
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  required?: boolean;
-}> = ({ label, value, onChange, type = "text", required }) => (
-  <label style={{ display: "block", marginBottom: 10 }}>
-    <div style={{ marginBottom: 4 }}>{label}</div>
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      required={required}
-      style={{
-        width: "100%",
-        padding: "8px 10px",
-        borderRadius: 8,
-        border: "1px solid #ccc",
-        fontSize: 14,
-        boxSizing: "border-box",
-      }}
-    />
-  </label>
-);
 
 export default RegisterPage;

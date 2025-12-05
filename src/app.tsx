@@ -61,34 +61,10 @@ const InnerApp: React.FC = () => {
 
   // LOGIN
   if (!user && screen === "login") {
-    return (
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "linear-gradient(to bottom, #6a89cc, #dcdde1)",
-        }}
-      >
-        <div
-          style={{
-            width: 420,
-            background: "#fff",
-            padding: 24,
-            borderRadius: 12,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
-          }}
-        >
-          <h2 style={{ textAlign: "center", marginBottom: 16 }}>
-            LockIn Fitness – Đăng nhập
-          </h2>
-          <LoginPage onSwitchToRegister={() => setScreen("register")} />
-        </div>
-      </div>
-    );
-  }
+  return (
+    <LoginPage onSwitchToRegister={() => setScreen("register")} />
+  );
+}
 
   // REGISTER (BƯỚC 1 – chỉ tài khoản)
   if (!user && screen === "register") {
@@ -121,8 +97,8 @@ const InnerApp: React.FC = () => {
   if (!user) {
     return (
       <div style={{ padding: 24 }}>
-        <p>Bạn chưa đăng nhập.</p>
-        <button onClick={() => setScreen("login")}>Về trang đăng nhập</button>
+        <p>You are not logged in.</p>
+        <button onClick={() => setScreen("login")}>Back to the login page</button>
       </div>
     );
   }
@@ -149,7 +125,7 @@ const InnerApp: React.FC = () => {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span>
-            Xin chào, <b>{user.username}</b>{" "}
+            Hello, <b>{user.username}</b>{" "}
             {isAdmin && (
               <span style={{ fontSize: 12, marginLeft: 4 }}>(Admin)</span>
             )}
@@ -163,7 +139,7 @@ const InnerApp: React.FC = () => {
               cursor: "pointer",
             }}
           >
-            Đăng xuất
+            Log out
           </button>
         </div>
       </header>
@@ -182,15 +158,15 @@ const InnerApp: React.FC = () => {
             background: "#fafafa",
           }}
         >
-          <button onClick={() => setScreen("dashboard")}>Dashboard</button>
-          <button onClick={() => setScreen("meals")}>Log bữa ăn</button>
-          <button onClick={() => setScreen("activity")}>Log hoạt động</button>
-          <button onClick={() => setScreen("relax")}>Log thư giãn</button>
-          <button onClick={() => setScreen("sleep")}>Log giấc ngủ</button>
-          <button onClick={() => setScreen("goal")}>Mục tiêu</button>
-          <button onClick={() => setScreen("daily")}>Nhật ký ngày</button>
-          <button onClick={() => setScreen("plan")}>Gói cá nhân</button>
-          <button onClick={() => setScreen("weekly")}>Báo cáo tuần</button>
+          <button onClick={() => setScreen("dashboard")}>Home</button>
+          <button onClick={() => setScreen("meals")}>Meal</button>
+          <button onClick={() => setScreen("activity")}>Activity</button>
+          <button onClick={() => setScreen("relax")}>Relaxation</button>
+          <button onClick={() => setScreen("sleep")}>Sleep</button>
+          <button onClick={() => setScreen("goal")}>Goal</button>
+          <button onClick={() => setScreen("daily")}>Daily Diary</button>
+          <button onClick={() => setScreen("plan")}>Personal plan</button>
+          <button onClick={() => setScreen("weekly")}>Weekly Report</button>
 
           {isAdmin && (
             <>
@@ -216,7 +192,7 @@ const InnerApp: React.FC = () => {
               <AdminPage userId={user.id} />
             ) : (
               <div style={{ padding: 24, color: "red" }}>
-                Bạn không có quyền truy cập trang admin.
+                You do not have permission to access the admin page.
               </div>
             ))}
         </main>
