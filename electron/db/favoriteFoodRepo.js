@@ -1,56 +1,58 @@
+// electron/db/favoriteFoodRepo.js
 const fs = require("fs");
 const path = require("path");
 
-const DATA_FILE = path.join(__dirname, "favoriteFoods.json");
+const DATA_FILE = path.join(
+  __dirname,
+  "..",
+  "data",
+  "foods",
+  "favoriteFoods.json"
+);
 
-function readJson() {
+function ensureFile() {
+  const dir = path.dirname(DATA_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, "[]", "utf8");
+}
+
+function readData() {
+  ensureFile();
+  const raw = fs.readFileSync(DATA_FILE, "utf8") || "[]";
   try {
-    const raw = fs.readFileSync(DATA_FILE, "utf8");
-    if (!raw.trim()) return [];
     return JSON.parse(raw);
-  } catch (e) {
+  } catch {
     return [];
   }
 }
 
-function writeJson(data) {
+function writeData(data) {
+  ensureFile();
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
 }
 
-/**
- * Lấy danh sách foodId ưa thích của 1 user
- */
+// Mỗi record: { userId, foodId }
 function getFavorites(userId) {
-  const all = readJson();
-  const record = all.find((r) => String(r.userId) === String(userId));
-  if (!record) return [];
-  return record.foodIds || [];
+  const list = readData();
+  return list.filter((x) => String(x.userId) === String(userId));
 }
 
-/**
- * Toggle ưa thích: nếu đang có thì bỏ, chưa có thì thêm
- */
 function toggleFavorite(userId, foodId) {
-  const all = readJson();
-  const uid = String(userId);
-  const fid = String(foodId);
+  const list = readData();
+  const idx = list.findIndex(
+    (x) =>
+      String(x.userId) === String(userId) && String(x.foodId) === String(foodId)
+  );
 
-  let record = all.find((r) => String(r.userId) === uid);
-  if (!record) {
-    record = { userId: uid, foodIds: [] };
-    all.push(record);
-  }
-
-  const idx = record.foodIds.findIndex((id) => String(id) === fid);
   if (idx >= 0) {
-    // đang favorite -> bỏ
-    record.foodIds.splice(idx, 1);
+    // đang có → bỏ
+    list.splice(idx, 1);
   } else {
-    record.foodIds.push(fid);
+    list.push({ userId: String(userId), foodId: String(foodId) });
   }
 
-  writeJson(all);
-  return record.foodIds;
+  writeData(list);
+  return getFavorites(userId);
 }
 
 module.exports = {

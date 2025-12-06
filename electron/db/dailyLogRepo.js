@@ -1,55 +1,49 @@
+// electron/db/dailyLogRepo.js
 const fs = require("fs");
 const path = require("path");
 
-const DATA_FILE = path.join(__dirname, "dailyLogs.json");
+const DATA_FILE = path.join(__dirname, "..", "data", "user", "dailyLogs.json");
 
-function readJson() {
+function ensureFile() {
+  const dir = path.dirname(DATA_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, "[]", "utf8");
+}
+
+function readData() {
+  ensureFile();
+  const raw = fs.readFileSync(DATA_FILE, "utf8") || "[]";
   try {
-    const raw = fs.readFileSync(DATA_FILE, "utf8");
-    if (!raw.trim()) return [];
     return JSON.parse(raw);
-  } catch (e) {
+  } catch {
     return [];
   }
 }
 
-function writeJson(data) {
+function writeData(data) {
+  ensureFile();
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
 }
 
-/**
- * Lấy log theo user + date (YYYY-MM-DD).
- * Nếu chưa có thì trả về giá trị mặc định.
- */
-function getForDate(userId, date) {
-  const logs = readJson();
-  const found = logs.find(
-    (l) => String(l.userId) === String(userId) && l.date === date
-  );
-  if (found) return found;
+// ================== PUBLIC API ==================
 
-  return {
-    userId: String(userId),
-    date,
-    waterMl: 0,
-    steps: 0,
-    weightKg: 0,
-    mood: 3, // 1-5
-    note: "",
-  };
+function getForDate(userId, date) {
+  const logs = readData();
+  return (
+    logs.find(
+      (l) => String(l.userId) === String(userId) && l.date === date
+    ) || null
+  );
 }
 
 /**
- * Lưu / cập nhật log cho 1 ngày.
- * payload: { userId, date, waterMl, steps, weightKg, mood, note }
+ * payload: { userId, date, waterMl, steps, weightKg, mood }
+ * Nếu cùng user + date đã tồn tại → merge & overwrite.
  */
 function save(payload) {
-  const logs = readJson();
-
+  const logs = readData();
   const idx = logs.findIndex(
-    (l) =>
-      String(l.userId) === String(payload.userId) &&
-      l.date === payload.date
+    (l) => String(l.userId) === String(payload.userId) && l.date === payload.date
   );
 
   const normalized = {
@@ -57,18 +51,17 @@ function save(payload) {
     date: payload.date,
     waterMl: Number(payload.waterMl) || 0,
     steps: Number(payload.steps) || 0,
-    weightKg: Number(payload.weightKg) || 0,
-    mood: Number(payload.mood) || 0,
-    note: payload.note || "",
+    weightKg: payload.weightKg != null ? Number(payload.weightKg) : null,
+    mood: payload.mood != null ? Number(payload.mood) : null,
   };
 
   if (idx >= 0) {
-    logs[idx] = normalized;
+    logs[idx] = { ...logs[idx], ...normalized };
   } else {
     logs.push(normalized);
   }
 
-  writeJson(logs);
+  writeData(logs);
   return normalized;
 }
 

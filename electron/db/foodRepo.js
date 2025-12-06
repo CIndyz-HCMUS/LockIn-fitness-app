@@ -1,80 +1,135 @@
+// electron/db/foodRepo.js
 const fs = require("fs");
 const path = require("path");
 
-const DATA_FILE = path.join(__dirname, "../data/foods.json");
+// Data chính nằm ở: electron/data/foods/foods.json
+const DATA_FILE = path.join(__dirname, "..", "data", "foods", "foods.json");
 
-function readJson() {
+function ensureFile() {
+  const dir = path.dirname(DATA_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, "[]", "utf8");
+}
+
+function readData() {
+  ensureFile();
+  const raw = fs.readFileSync(DATA_FILE, "utf8") || "[]";
   try {
-    const raw = fs.readFileSync(DATA_FILE, "utf8");
-    return JSON.parse(raw || "[]");
-  } catch (e) {
+    return JSON.parse(raw);
+  } catch {
     return [];
   }
 }
 
-function writeJson(data) {
+function writeData(data) {
+  ensureFile();
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
 }
 
-/**
- * Tìm món ăn theo tên / brand
- */
-function searchFoods(query = "") {
-  const foods = readJson();
-  if (!query.trim()) return foods;
+function getNextId(items) {
+  if (!items.length) return 1;
+  return Math.max(...items.map((f) => Number(f.id) || 0)) + 1;
+}
 
-  const keywords = query.toLowerCase().split(/\s+/).filter(Boolean);
+// ================== HÀM CHÍNH ==================
 
-  return foods.filter((item) =>
-    keywords.every(
-      (k) =>
-        item.name.toLowerCase().includes(k) ||
-        (item.brand && item.brand.toLowerCase().includes(k))
-    )
-  );
+function getAll() {
+  return readData();
+}
+
+function getById(id) {
+  const list = readData();
+  return list.find((f) => String(f.id) === String(id)) || null;
 }
 
 /**
- * Thêm món ăn mới (từ người dùng)
+ * Tìm kiếm thức ăn theo tên / brand.
+ * query rỗng => trả toàn bộ.
+ */
+function searchFoods(query) {
+  const list = readData();
+  const q = (query || "").trim().toLowerCase();
+  if (!q) return list;
+
+  return list.filter((f) => {
+    const name = (f.name || "").toLowerCase();
+    const brand = (f.brand || "").toLowerCase();
+    return name.includes(q) || brand.includes(q);
+  });
+}
+
+/**
+ * Thêm một food mới.
  * payload: { name, unit, calories, preparation, carb?, protein?, fat?, fiber?, brand? }
  */
 function addFood(payload) {
-  const foods = readJson();
-  const nextId =
-    foods.length > 0
-      ? (Math.max(...foods.map((f) => Number(f.id) || 0)) || 0) + 1
-      : 1;
+  const list = readData();
+  const id = getNextId(list);
 
   const newFood = {
-    id: nextId,
-    name: String(payload.name || "").trim(),
-    unit: String(payload.unit || "100g"),
+    id,
+    name: payload.name,
+    unit: payload.unit || "",
     calories: Number(payload.calories) || 0,
-    preparation: payload.preparation || "cooked",
-    brand: payload.brand || null,
-    carb: payload.carb != null ? Number(payload.carb) : undefined,
-    protein: payload.protein != null ? Number(payload.protein) : undefined,
-    fat: payload.fat != null ? Number(payload.fat) : undefined,
-    fiber: payload.fiber != null ? Number(payload.fiber) : undefined,
+    preparation: payload.preparation || "",
+    carb: payload.carb != null ? Number(payload.carb) : null,
+    protein: payload.protein != null ? Number(payload.protein) : null,
+    fat: payload.fat != null ? Number(payload.fat) : null,
+    fiber: payload.fiber != null ? Number(payload.fiber) : null,
+    brand: payload.brand || "",
   };
 
-  foods.push(newFood);
-  writeJson(foods);
+  list.push(newFood);
+  writeData(list);
   return newFood;
 }
 
-/**
- * Xoá 1 món ăn khỏi database
- */
+function updateFood(id, updates) {
+  const list = readData();
+  const idx = list.findIndex((f) => String(f.id) === String(id));
+  if (idx === -1) return null;
+
+  list[idx] = {
+    ...list[idx],
+    ...updates,
+    id: list[idx].id,
+  };
+
+  // chuẩn hoá lại số
+  if (list[idx].calories != null)
+    list[idx].calories = Number(list[idx].calories) || 0;
+  ["carb", "protein", "fat", "fiber"].forEach((k) => {
+    if (list[idx][k] != null) list[idx][k] = Number(list[idx][k]) || 0;
+  });
+
+  writeData(list);
+  return list[idx];
+}
+
 function deleteFood(id) {
-  const foods = readJson();
-  const newFoods = foods.filter((f) => String(f.id) !== String(id));
-  writeJson(newFoods);
-  return { ok: true };
+  const list = readData();
+  const filtered = list.filter((f) => String(f.id) !== String(id));
+  const deleted = filtered.length !== list.length;
+  if (deleted) writeData(filtered);
+  return deleted;
+}
+
+// alias CRUD
+function create(payload) {
+  return addFood(payload);
+}
+
+function remove(id) {
+  return deleteFood(id);
 }
 
 module.exports = {
+  getAll,
+  getById,
   searchFoods,
   addFood,
-  deleteFood, // 🚨 quan trọng: export đúng tên
+  updateFood,
+  deleteFood,
+  create,
+  remove,
 };

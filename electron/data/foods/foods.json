@@ -1,36 +1,12 @@
 [
   {
-    "id": 1,
-    "name": "Rice",
-    "brand": null,
-    "calories": 203,
-    "portionSize": "100g",
-    "carb": 44.4,
-    "protein": 3.7,
-    "fat": 0.5,
-    "fiber": 1.3,
-    "preparation": "cooked"
-  },
-  {
-    "id": 2,
-    "name": "Chicken Breast",
-    "brand": null,
-    "calories": 117,
-    "portionSize": "100g",
-    "carb": 0.1,
-    "protein": 23.3,
-    "fat": 1.9,
-    "fiber": 0,
-    "preparation": "raw"
-  },
-  {
     "id": 3,
     "name": "Rolled Oats",
     "brand": null,
     "calories": 341,
     "portionSize": "100g",
-    "carb": 58.0,
-    "protein": 11.0,
+    "carb": 58,
+    "protein": 11,
     "fat": 7.7,
     "fiber": 10.6,
     "preparation": "raw"
@@ -55,11 +31,11 @@
     "portionSize": "100g",
     "carb": 0,
     "protein": 0,
-    "fat": 100.0,
+    "fat": 100,
     "fiber": 0,
     "preparation": "raw"
   },
-   {
+  {
     "id": 6,
     "name": "Sourdough",
     "brand": null,
@@ -71,19 +47,19 @@
     "fiber": 2.2,
     "preparation": "cooked"
   },
-   {
+  {
     "id": 6,
     "name": "Dark Chocolate 85%",
     "brand": "Lindt Excellence",
     "calories": 552,
     "portionSize": "100g",
-    "carb": 22.0,
+    "carb": 22,
     "protein": 12.5,
-    "fat": 46.0,
+    "fat": 46,
     "fiber": 0,
     "preparation": null
   },
-   {
+  {
     "id": 7,
     "name": "Tomato",
     "brand": null,
@@ -92,22 +68,22 @@
     "carb": 4.7,
     "protein": 0.7,
     "fat": 0.1,
-    "fiber": 1.0,
+    "fiber": 1,
     "preparation": "raw"
   },
-   {
+  {
     "id": 8,
     "name": "Broccoli",
     "brand": null,
     "calories": 32,
     "portionSize": "100g",
-    "carb":6.3,
+    "carb": 6.3,
     "protein": 3.1,
     "fat": 0.2,
     "fiber": 3.1,
     "preparation": "raw"
   },
-   {
+  {
     "id": 9,
     "name": "Coho Salmon",
     "brand": null,
@@ -119,7 +95,7 @@
     "fiber": 0,
     "preparation": "raw"
   },
-   {
+  {
     "id": 10,
     "name": "Beef, 10% fat",
     "brand": null,

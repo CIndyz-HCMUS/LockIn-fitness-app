@@ -1,9 +1,9 @@
-// electron/db/activityRepo.js
+// electron/db/relaxRepo.js
 const fs = require("fs");
 const path = require("path");
 
-// Danh sách activity master
-const DATA_FILE = path.join(__dirname, "..", "data", "activities", "activities.json");
+// relax master nằm trong electron/data/relax/relax.json
+const DATA_FILE = path.join(__dirname, "..", "data", "relax", "relax.json");
 
 function ensureFile() {
   const dir = path.dirname(DATA_FILE);
@@ -28,65 +28,57 @@ function writeData(data) {
 
 function getNextId(items) {
   if (!items.length) return 1;
-  return Math.max(...items.map((a) => Number(a.id) || 0)) + 1;
+  return Math.max(...items.map((r) => Number(r.id) || 0)) + 1;
 }
 
 // ============= PUBLIC API =============
 
-function getActivities() {
+function getAll() {
   return readData();
 }
 
 function getById(id) {
   const list = readData();
-  return list.find((a) => String(a.id) === String(id)) || null;
+  return list.find((r) => String(r.id) === String(id)) || null;
 }
 
-function addActivity(payload) {
+function addRelaxType(payload) {
   const list = readData();
   const id = getNextId(list);
 
-  const activity = {
+  const relax = {
     id,
     name: payload.name,
-    category: payload.category || "cardio",
-    // caloriesPerUnit: kcal / unit (vd: per 30 phút, per km, ...)
-    caloriesPerUnit: Number(payload.caloriesPerUnit) || 0,
-    unitLabel: payload.unitLabel || "phút",
-    note: payload.note || "",
+    description: payload.description || "",
   };
 
-  list.push(activity);
+  list.push(relax);
   writeData(list);
-  return activity;
+  return relax;
 }
 
-function updateActivity(id, updates) {
+function updateRelaxType(id, updates) {
   const list = readData();
-  const idx = list.findIndex((a) => String(a.id) === String(id));
+  const idx = list.findIndex((r) => String(r.id) === String(id));
   if (idx === -1) return null;
 
-  list[idx] = {
-    ...list[idx],
-    ...updates,
-    id: list[idx].id, // giữ nguyên id
-  };
+  list[idx] = { ...list[idx], ...updates, id: list[idx].id };
   writeData(list);
   return list[idx];
 }
 
-function deleteActivity(id) {
+function deleteRelaxType(id) {
   const list = readData();
-  const filtered = list.filter((a) => String(a.id) !== String(id));
+  const filtered = list.filter((r) => String(r.id) !== String(id));
   const deleted = filtered.length !== list.length;
   if (deleted) writeData(filtered);
   return deleted;
 }
 
 module.exports = {
-  getActivities,
+  getAll,
   getById,
-  addActivity,
-  updateActivity,
-  deleteActivity,
+  addRelaxType,
+  updateRelaxType,
+  deleteRelaxType,
 };

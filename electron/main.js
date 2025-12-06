@@ -6,6 +6,7 @@ const userRepo = require("./db/userRepo");
 const foodRepo = require("./db/foodRepo");
 const mealLogRepo = require("./db/mealLogRepo");
 const activityRepo = require("./db/activityRepo");
+const activityLogRepo = require("./db/activityLogRepo"); // ⭐ log hoạt động tách riêng
 const relaxLogRepo = require("./db/relaxLogRepo");
 const sleepLogRepo = require("./db/sleepLogRepo");
 const favoriteFoodRepo = require("./db/favoriteFoodRepo");
@@ -80,7 +81,6 @@ ipcMain.handle("auth:register", (_, ...args) => {
   return userRepo.registerUser(username, password, bodyInfo);
 });
 
-
 ipcMain.handle("auth:login", (_, username, password) => {
   return userRepo.loginUser(username, password);
 });
@@ -123,20 +123,23 @@ ipcMain.handle("meals:toggleFavorite", (_, userId, foodId) => {
 });
 
 // ==================== ACTIVITY ====================
+// danh sách activity (chạy bộ, đạp xe,...) lấy từ activityRepo
 ipcMain.handle("activity:getList", () => {
   return activityRepo.getActivities();
 });
 
+// log hoạt động (theo user + ngày) dùng activityLogRepo
 ipcMain.handle("activity:add", (_, payload) => {
-  return activityRepo.addLog(payload);
+  return activityLogRepo.create(payload);
 });
 
 ipcMain.handle("activity:getForDate", (_, userId, date) => {
-  return activityRepo.getLogsForDate(userId, date);
+  // dùng hàm mình đã thêm trong activityLogRepo
+  return activityLogRepo.getLogsForDate(userId, date);
 });
 
 ipcMain.handle("activity:delete", (_, id) => {
-  return activityRepo.deleteLog(id);
+  return activityLogRepo.remove(id);
 });
 
 // ==================== RELAX ====================
@@ -177,10 +180,18 @@ ipcMain.handle("daily:save", (_, payload) => {
 });
 
 // ==================== GOAL (inline) ====================
-const GOALS_FILE = path.join(__dirname, "db", "goals.json");
+// chuyển sang dùng data/user/goals.json thay vì db/goals.json
+const GOALS_FILE = path.join(__dirname, "data", "user", "goals.json");
+
+function ensureGoalsFile() {
+  const dir = path.dirname(GOALS_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(GOALS_FILE)) fs.writeFileSync(GOALS_FILE, "[]", "utf8");
+}
 
 function readGoals() {
   try {
+    ensureGoalsFile();
     const raw = fs.readFileSync(GOALS_FILE, "utf8");
     if (!raw.trim()) return [];
     return JSON.parse(raw);
@@ -190,6 +201,7 @@ function readGoals() {
 }
 
 function writeGoals(data) {
+  ensureGoalsFile();
   fs.writeFileSync(GOALS_FILE, JSON.stringify(data, null, 2), "utf8");
 }
 
