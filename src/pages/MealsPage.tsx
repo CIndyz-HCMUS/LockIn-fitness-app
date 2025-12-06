@@ -78,15 +78,35 @@ export default function MealsPage({ userId }: Props) {
   }
 
   // =============== LOAD MEAL LOG ===============
-  async function loadMeals() {
-    try {
-      const res = await api.meals.getForDate(userId, date);
-      setItems(res.items);
-      setTotal(res.totalCalories);
-    } catch (err) {
-      console.error("loadMeals error:", err);
+  // =============== LOAD MEAL LOG ===============
+async function loadMeals() {
+  try {
+    const res = await api.meals.getForDate(userId, date);
+
+    // Nếu backend trả MẢNG
+    if (Array.isArray(res)) {
+      const arr = res as any[];
+      setItems(arr as any);
+      const totalCalories = arr.reduce(
+        (sum, it: any) => sum + (it.calories || 0),
+        0
+      );
+      setTotal(totalCalories);
+    } else {
+      // Nếu backend trả { items, totalCalories }
+      const items = (res && (res as any).items) || [];
+      const totalCalories =
+        (res && (res as any).totalCalories) ||
+        items.reduce((sum: number, it: any) => sum + (it.calories || 0), 0);
+
+      setItems(items);
+      setTotal(totalCalories);
     }
+  } catch (err) {
+    console.error("loadMeals error:", err);
   }
+}
+
 
   useEffect(() => {
     loadFoods("");

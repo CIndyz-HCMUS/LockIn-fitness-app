@@ -544,7 +544,7 @@ const AdminPage: React.FC<AdminPageProps> = () => {
                 </tr>
               </thead>
               <tbody>
-                {foods.map((f) => (
+                {foods.map((f, index) => (
                   <tr
                     key={f.id ?? f.foodId ?? f.name}
                     style={{ borderTop: "1px solid #eee" }}

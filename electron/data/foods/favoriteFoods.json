@@ -8,5 +8,9 @@
     "foodIds": [
       "1"
     ]
+  },
+  {
+    "userId": "1",
+    "foodId": "3"
   }
 ]

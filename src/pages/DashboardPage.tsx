@@ -68,48 +68,67 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ userId }) => {
   const [plan, setPlan] = useState<PlanSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadAll = async () => {
-    setLoading(true);
-    try {
-      const [mealRes, actRes, relaxRes, sleepRes, dailyRes, goalRes] =
-        await Promise.all([
-          api.meals.getForDate(userId, today),
-          api.activity.getForDate(userId, today),
-          api.relax.getForDate(userId, today),
-          api.sleep.getForDate(userId, today),
-          api.daily.getForDate(userId, today),
-          api.goal.getForUser(userId),
-        ]);
+ const loadAll = async () => {
+  setLoading(true);
+  try {
+    // 👇 NHỚ destructuring đủ 6 biến
+    const [mealRes, actRes, relaxRes, sleepRes, dailyRes, goalRes] =
+      await Promise.all([
+        api.meals.getForDate(userId, today),
+        api.activity.getForDate(userId, today),
+        api.relax.getForDate(userId, today),
+        api.sleep.getForDate(userId, today),
+        api.daily.getForDate(userId, today),
+        api.goal.getForUser(userId),
+      ]);
 
-      setMealLogs(mealRes.items || []);
-      setActivityLogs(actRes.items || []);
-      setRelaxLogs(relaxRes.items || []);
-      setSleepLogs(sleepRes.items || []);
-      setDaily(dailyRes || null);
+    // Nếu backend trả MẢNG thì dùng luôn, nếu trả { items } thì lấy items
+    const mealArr = Array.isArray(mealRes)
+      ? (mealRes as any[])
+      : ((mealRes && (mealRes as any).items) || []);
+    const actArr = Array.isArray(actRes)
+      ? (actRes as any[])
+      : ((actRes && (actRes as any).items) || []);
+    const relaxArr = Array.isArray(relaxRes)
+      ? (relaxRes as any[])
+      : ((relaxRes && (relaxRes as any).items) || []);
+    const sleepArr = Array.isArray(sleepRes)
+      ? (sleepRes as any[])
+      : ((sleepRes && (sleepRes as any).items) || []);
 
-      if (goalRes) {
-        setGoal({
-          dailyCalorieGoal: goalRes.dailyCalorieGoal,
-          waterGoal: goalRes.waterGoal,
-          stepGoal: goalRes.stepGoal,
-          targetWeight: goalRes.targetWeight,
-        });
-      } else {
-        setGoal(null);
-      }
+    setMealLogs(mealArr as any);
+    setActivityLogs(actArr as any);
+    setRelaxLogs(relaxArr as any);
+    setSleepLogs(sleepArr as any);
 
-      // Tải plan nếu API có
-      if (api.plan && api.plan.getForUser) {
-        const planRes = await api.plan.getForUser(userId);
-        setPlan(planRes || null);
-      } else {
-        setPlan(null);
-      }
-    } catch (e) {
-      console.error("dashboard load error", e);
+    // dailyRes: backend đang trả trực tiếp 1 object hoặc null
+    setDaily(dailyRes || null);
+
+    // goalRes: nếu có thì map lại, không thì set null
+    if (goalRes) {
+      setGoal({
+        dailyCalorieGoal: goalRes.dailyCalorieGoal,
+        waterGoal: goalRes.waterGoal,
+        stepGoal: goalRes.stepGoal,
+        targetWeight: goalRes.targetWeight,
+      });
+    } else {
+      setGoal(null);
     }
-    setLoading(false);
-  };
+
+    // Nếu có API plan thì lấy luôn gói cá nhân
+    if (api.plan && api.plan.getForUser) {
+      const planRes = await api.plan.getForUser(userId);
+      setPlan(planRes || null);
+    } else {
+      setPlan(null);
+    }
+  } catch (e) {
+    console.error("dashboard load error", e);
+  }
+  setLoading(false);
+};
+
 
   useEffect(() => {
     loadAll();

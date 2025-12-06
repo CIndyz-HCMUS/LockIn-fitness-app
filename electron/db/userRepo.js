@@ -1,217 +1,127 @@
-// electron/db/userRepo.js
 const fs = require("fs");
 const path = require("path");
 
-const DATA_FILE = path.join(__dirname, "users.json");
+// ĐƯỜNG DẪN MỚI: data/user/users.json
+const DATA_FILE = path.join(__dirname, "..", "data", "user", "users.json");
 
-function readJson() {
+function ensureFile() {
+  const dir = path.dirname(DATA_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, "[]", "utf8");
+}
+
+function readUsers() {
+  ensureFile();
+  const raw = fs.readFileSync(DATA_FILE, "utf8") || "[]";
   try {
-    const raw = fs.readFileSync(DATA_FILE, "utf8");
-    if (!raw.trim()) return [];
     return JSON.parse(raw);
-  } catch (e) {
+  } catch {
     return [];
   }
 }
 
-function writeJson(data) {
+function writeUsers(data) {
+  ensureFile();
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
 }
 
-/**
- * Tạo admin mặc định nếu chưa có
- */
-function ensureDefaultAdmin() {
-  const users = readJson();
-  const hasAdmin = users.some(
-    (u) => u.role === "admin" || u.username === "admin"
-  );
-  if (!hasAdmin) {
-    const nextId =
-      users.length > 0
-        ? (Math.max(...users.map((u) => Number(u.id) || 0)) || 0) + 1
-        : 1;
-
-    users.push({
-      id: nextId,
-      username: "admin",
-      password: "admin123", // demo
-      role: "admin",
-      isLocked: false,
-      gender: null,
-      heightCm: null,
-      weightKg: null,
-      birthYear: null,
-    });
-    writeJson(users);
-    console.log(
-      "[userRepo] Created default admin account: admin / admin123"
-    );
-  }
+function getNextId(list) {
+  if (!list.length) return 1;
+  return Math.max(...list.map(u => Number(u.id) || 0)) + 1;
 }
 
-/**
- * Đăng ký user mới
- * bodyInfo: { gender?, heightCm?, weightKg?, birthYear? }
- */
-function registerUser(username, password, bodyInfo) {
-  ensureDefaultAdmin();
+// Tạo sẵn admin nếu chưa có
+function ensureDefaultAdmin() {
+  const users = readUsers();
+  const hasAdmin = users.some(
+    (u) => u.username === "admin" || u.role === "admin"
+  );
+  if (hasAdmin) return;
 
-  const users = readJson();
-  if (users.find((u) => u.username === username)) {
+  const id = getNextId(users);
+  const adminUser = {
+    id,
+    username: "admin",
+    password: "admin123",
+    role: "admin",
+    locked: false,
+    createdAt: new Date().toISOString(),
+  };
+
+  users.push(adminUser);
+  writeUsers(users);
+}
+
+// GỌI 1 LẦN LÚC LOAD MODULE
+ensureDefaultAdmin();
+
+// =============== PUBLIC API ===============
+
+function registerUser(username, password, bodyInfo = null) {
+  const users = readUsers();
+
+  const existed = users.find((u) => u.username === username);
+  if (existed) {
     return { ok: false, error: "Username đã tồn tại" };
   }
 
-  const nextId =
-    users.length > 0
-      ? (Math.max(...users.map((u) => Number(u.id) || 0)) || 0) + 1
-      : 1;
-
-  const role = username === "admin" ? "admin" : "user";
-
-  const gender =
-    bodyInfo && bodyInfo.gender ? String(bodyInfo.gender) : null;
-  const heightCm =
-    bodyInfo && bodyInfo.heightCm
-      ? Number(bodyInfo.heightCm) || null
-      : null;
-  const weightKg =
-    bodyInfo && bodyInfo.weightKg
-      ? Number(bodyInfo.weightKg) || null
-      : null;
-  const birthYear =
-    bodyInfo && bodyInfo.birthYear
-      ? Number(bodyInfo.birthYear) || null
-      : null;
-
-  const user = {
-    id: nextId,
+  const id = getNextId(users);
+  const newUser = {
+    id,
     username,
-    password,
-    role,
-    isLocked: false,
-    gender,
-    heightCm,
-    weightKg,
-    birthYear,
+    password,          // (có thể hash sau)
+    role: "user",
+    locked: false,
+    bodyInfo: bodyInfo || null,
+    createdAt: new Date().toISOString(),
   };
 
-  users.push(user);
-  writeJson(users);
-
-  return {
-    ok: true,
-    user: {
-      id: user.id,
-      username: user.username,
-      role: user.role,
-      isLocked: user.isLocked,
-      gender: user.gender,
-      heightCm: user.heightCm,
-      weightKg: user.weightKg,
-      birthYear: user.birthYear,
-    },
-  };
+  users.push(newUser);
+  writeUsers(users);
+  return { ok: true, user: newUser };
 }
 
-/**
- * Đăng nhập
- */
 function loginUser(username, password) {
-  ensureDefaultAdmin();
-
-  const users = readJson();
+  const users = readUsers();
   const user = users.find(
     (u) => u.username === username && u.password === password
   );
+
   if (!user) {
     return { ok: false, error: "Sai username hoặc password" };
   }
 
-  if (user.isLocked) {
-    return { ok: false, error: "Tài khoản đã bị khoá bởi admin" };
+  if (user.locked) {
+    return { ok: false, error: "Tài khoản đã bị khóa" };
   }
 
-  return {
-    ok: true,
-    user: {
-      id: user.id,
-      username: user.username,
-      role: user.role || "user",
-      isLocked: !!user.isLocked,
-      gender: user.gender ?? null,
-      heightCm: user.heightCm ?? null,
-      weightKg: user.weightKg ?? null,
-      birthYear: user.birthYear ?? null,
-    },
-  };
+  return { ok: true, user };
 }
 
-/* ====== HÀM DÙNG CHO ADMIN ====== */
+// ====== Dùng cho Admin ======
 
 function getAllUsers() {
-  ensureDefaultAdmin();
-  const users = readJson();
-  return users.map((u) => ({
-    id: u.id,
-    username: u.username,
-    role: u.role || "user",
-    isLocked: !!u.isLocked,
-    gender: u.gender ?? null,
-    heightCm: u.heightCm ?? null,
-    weightKg: u.weightKg ?? null,
-    birthYear: u.birthYear ?? null,
-  }));
+  return readUsers();
 }
 
 function getUserById(id) {
-  ensureDefaultAdmin();
-  const users = readJson();
-  const u = users.find((x) => Number(x.id) === Number(id));
-  if (!u) return null;
-  return {
-    id: u.id,
-    username: u.username,
-    role: u.role || "user",
-    isLocked: !!u.isLocked,
-    gender: u.gender ?? null,
-    heightCm: u.heightCm ?? null,
-    weightKg: u.weightKg ?? null,
-    birthYear: u.birthYear ?? null,
-  };
+  const users = readUsers();
+  return users.find((u) => String(u.id) === String(id)) || null;
 }
 
 function updateUserById(id, patch) {
-  ensureDefaultAdmin();
-  const users = readJson();
-  const idx = users.findIndex((u) => Number(u.id) === Number(id));
+  const users = readUsers();
+  const idx = users.findIndex((u) => String(u.id) === String(id));
   if (idx === -1) return null;
 
-  const allowed = {};
-  if (patch.role) allowed.role = patch.role;
-  if (typeof patch.isLocked !== "undefined") allowed.isLocked = patch.isLocked;
-  if (typeof patch.gender !== "undefined") allowed.gender = patch.gender;
-  if (typeof patch.heightCm !== "undefined")
-    allowed.heightCm = patch.heightCm;
-  if (typeof patch.weightKg !== "undefined")
-    allowed.weightKg = patch.weightKg;
-  if (typeof patch.birthYear !== "undefined")
-    allowed.birthYear = patch.birthYear;
-
-  users[idx] = { ...users[idx], ...allowed };
-  writeJson(users);
-
-  const u = users[idx];
-  return {
-    id: u.id,
-    username: u.username,
-    role: u.role || "user",
-    isLocked: !!u.isLocked,
-    gender: u.gender ?? null,
-    heightCm: u.heightCm ?? null,
-    weightKg: u.weightKg ?? null,
-    birthYear: u.birthYear ?? null,
+  users[idx] = {
+    ...users[idx],
+    ...patch,
+    id: users[idx].id,   // luôn giữ nguyên id
   };
+
+  writeUsers(users);
+  return users[idx];
 }
 
 module.exports = {

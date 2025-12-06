@@ -27,11 +27,29 @@ export default function ActivityPage({ userId }: Props) {
   }
 
   // --- tải log ---
-  async function loadLogs() {
-    const res = await window.lockinAPI.activity.getForDate(userId, date);
-    setLogs(res.items);
-    setTotal(res.totalCalories);
+  // --- tải log ---
+async function loadLogs() {
+  const res = await window.lockinAPI.activity.getForDate(userId, date);
+
+  if (Array.isArray(res)) {
+    const arr = res as any[];
+    setLogs(arr as any);
+    const totalCalories = arr.reduce(
+      (sum, it: any) => sum + (it.calories || 0),
+      0
+    );
+    setTotal(totalCalories);
+  } else {
+    const items = (res && (res as any).items) || [];
+    const totalCalories =
+      (res && (res as any).totalCalories) ||
+      items.reduce((sum: number, it: any) => sum + (it.calories || 0), 0);
+
+    setLogs(items);
+    setTotal(totalCalories);
   }
+}
+
 
   // --- thêm log ---
   async function addActivity() {

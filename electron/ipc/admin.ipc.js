@@ -1,3 +1,6 @@
+function readActivities() {
+  return readJsonFile("data/activities/activities.json");
+}
 // electron/ipc/admin.ipc.js
 const { ipcMain } = require("electron");
 const userRepo = require("../db/userRepo");
@@ -28,9 +31,10 @@ ipcMain.handle("admin:getUsers", () => {
 });
 
 ipcMain.handle("admin:updateUser", (_event, payload) => {
+  // map isLocked -> locked để đồng bộ với userRepo & loginUser
   const updated = userRepo.updateUserById(payload.id, {
     role: payload.role,
-    isLocked: payload.isLocked,
+    locked: payload.isLocked,
   });
   return updated;
 });
@@ -43,18 +47,29 @@ ipcMain.handle("admin:getUserById", (_event, id) => {
 /* =============== STATS =============== */
 
 ipcMain.handle("admin:getStats", () => {
-  const users = userRepo.getAllUsers();
+  // USERS
+  const users = readJsonFile("data/user/users.json");
 
-  const activities = readJsonFile("data/activities.json");
-  const foods = readJsonFile("data/foods.json");
-  const activityLogs = readJsonFile("data/activityLogs.json");
-  const relaxLogs = readJsonFile("data/relax.json");
-  const mealLogs = readJsonFile("db/mealLogs.json");
+  // ACTIVITIES MASTER
+  const activities = readJsonFile("data/activities/activities.json");
+
+  // FOODS
+  const foods = readJsonFile("data/foods/foods.json");
+
+  // ACTIVITY LOGS
+  const activityLogs = readJsonFile("data/activities/activityLogs.json");
+
+  // RELAX LOGS
+  const relaxLogs = readJsonFile("data/relax/relaxLogs.json");
+
+  // MEAL LOGS
+  const mealLogs = readJsonFile("data/foods/mealLogs.json");
 
   return {
     totalUsers: users.length,
     totalAdmins: users.filter((u) => u.role === "admin").length,
-    totalLockedUsers: users.filter((u) => u.isLocked).length,
+    // dùng field locked cho thống nhất với userRepo
+    totalLockedUsers: users.filter((u) => u.locked).length,
     totalActivities: activities.length,
     totalFoods: foods.length,
     totalActivityLogs: activityLogs.length,
@@ -64,14 +79,14 @@ ipcMain.handle("admin:getStats", () => {
 });
 
 /* =============== ACTIVITIES CRUD =============== */
-// Làm việc trực tiếp với data/activities.json
+// Làm việc trực tiếp với data/activities/activities.json
 
 function readActivities() {
-  return readJsonFile("data/activities.json");
+  return readJsonFile("data/activities/activities.json");
 }
 
 function writeActivities(list) {
-  writeJsonFile("data/activities.json", list);
+  writeJsonFile("data/activities/activities.json", list);
 }
 
 ipcMain.handle("admin:getActivities", () => {
