@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "userId": "859ef544-111c-4e04-8cc6-9e8017f463c8",
+    "planType": "muscle_gain",
+    "durationMonths": 1,
+    "price": 250000,
+    "progress": 0,
+    "status": "expired",
+    "purchaseDate": "2025-12-02",
+    "expirationDate": "2026-01-02"
+  },
+  {
+    "id": 2,
+    "userId": "859ef544-111c-4e04-8cc6-9e8017f463c8",
+    "planType": "muscle_gain",
+    "durationMonths": 1,
+    "price": 250000,
+    "progress": 0,
+    "status": "expired",
+    "purchaseDate": "2025-12-02",
+    "expirationDate": "2026-01-02"
+  },
+  {
+    "id": 3,
+    "userId": "859ef544-111c-4e04-8cc6-9e8017f463c8",
+    "planType": "weight_loss",
+    "durationMonths": 1,
+    "price": 200000,
+    "progress": 0,
+    "status": "active",
+    "purchaseDate": "2025-12-02",
+    "expirationDate": "2026-01-02"
+  },
+  {
+    "id": 4,
+    "userId": "2",
+    "planType": "muscle_gain",
+    "durationMonths": 1,
+    "price": 250000,
+    "progress": 12,
+    "status": "active",
+    "purchaseDate": "2025-12-02",
+    "expirationDate": "2026-01-02"
+  }
+]
